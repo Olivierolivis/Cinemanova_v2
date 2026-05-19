@@ -2,7 +2,7 @@
  * Cinemanova - View Page Logic
  * Handles movie details, YouTube trailer embed, cast, and favorites
  */
-const TMDB_API_KEY = 'YOUR_TMDB_API_KEY'; // 🔑 Must match app.js
+const TMDB_API_KEY = 'c1fc2189591a15fbec101a32dcd46b9d'; // 🔑 Must match app.js
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 const TMDB_IMG_BASE = 'https://image.tmdb.org/t/p/';
 
