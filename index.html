@@ -128,22 +128,29 @@
         <div id="genre-filters" class="flex flex-wrap justify-center gap-3"></div>
     </section>
 
-    <!-- Trending Movies -->
-    <section id="trending" class="container mx-auto px-4 md:px-8 py-12">
-        <div class="flex items-center justify-between mb-8">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-neon flex items-center gap-3"><i class="fa-solid fa-fire-flame-curved"></i> Trending Now</h2>
-            <div class="flex gap-2">
-                <button class="filter-btn active px-4 py-2 rounded-full bg-neon/20 border border-neon/40 text-sm hover:bg-neon hover:text-black transition-all" data-time="day">Today</button>
-                <button class="filter-btn px-4 py-2 rounded-full bg-white/5 border border-white/20 text-sm hover:bg-neon hover:text-black transition-all" data-time="week">This Week</button>
+    <!-- 🌟 RESPONSIVE TRENDING MOVIES SECTION -->
+    <section id="trending" class="w-full py-12">
+        <div class="container mx-auto px-4 md:px-8 mb-8">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <h2 class="font-display text-3xl md:text-4xl font-bold text-neon flex items-center gap-3"><i class="fa-solid fa-fire-flame-curved"></i> Trending Now</h2>
+                <div class="flex gap-2">
+                    <button class="filter-btn active px-4 py-2 rounded-full bg-neon/20 border border-neon/40 text-sm hover:bg-neon hover:text-black transition-all" data-time="day">Today</button>
+                    <button class="filter-btn px-4 py-2 rounded-full bg-white/5 border border-white/20 text-sm hover:bg-neon hover:text-black transition-all" data-time="week">This Week</button>
+                </div>
             </div>
         </div>
-        <div id="trending-skeleton" class="hidden grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+        
+        <div id="trending-skeleton" class="hidden px-4 md:px-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <script>for(let i=0;i<6;i++) document.write('<div class="animate-pulse"><div class="bg-gray-800 h-80 rounded-xl mb-3 shimmer"></div><div class="bg-gray-800 h-4 w-3/4 rounded mb-2"></div><div class="bg-gray-800 h-3 w-1/2 rounded"></div></div>');</script>
         </div>
-        <div class="swiper trending-swiper pb-8 overflow-visible">
-            <div class="swiper-wrapper" id="trending-container"></div>
+        
+        <!-- Swiper Container with Responsive Padding -->
+        <div class="relative w-full px-4 sm:px-8 md:px-12">
+            <div class="swiper trending-swiper pb-10 !overflow-visible">
+                <div class="swiper-wrapper" id="trending-container"></div>
+            </div>
+            <div class="swiper-pagination trending-pagination !bottom-0"></div>
         </div>
-        <div class="swiper-pagination trending-pagination"></div>
     </section>
 
     <!-- Popular Movies -->
@@ -224,4 +231,4 @@
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script src="app.js"></script>
 </body>
-    </html>
+                    </html>
