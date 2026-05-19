@@ -405,3 +405,77 @@ window.addEventListener('scroll', () => {
     if (current > lastScroll && current > 100) els.navbar.style.transform = 'translateY(-100%)';
     else els.navbar.style.transform = 'translateY(0)';
     lastScroll = current;
+if (current > 500) { els.backToTop.style.transform = 'translateY(0)'; els.backToTop.style.opacity = '1'; }
+    else { els.backToTop.style.transform = 'translateY(5rem)'; els.backToTop.style.opacity = '0'; }
+});
+
+els.backToTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+els.mobileMenuBtn.addEventListener('click', () => els.mobileMenu.classList.toggle('hidden'));
+els.modalClose.addEventListener('click', closeModal);
+els.modalBackdrop.addEventListener('click', closeModal);
+document.addEventListener('keydown', (e) => e.key === 'Escape' && closeModal());
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('bg-neon/20', 'border-neon/40'));
+        btn.classList.add('bg-neon/20', 'border-neon/40');
+        renderTrending(btn.dataset.time);
+    });
+});
+
+// 🖱️ CUSTOM CURSOR
+document.addEventListener('mousemove', (e) => { els.cursor.style.left = e.clientX + 'px'; els.cursor.style.top = e.clientY + 'px'; });
+document.querySelectorAll('button, a, .glass-card, .swiper-slide').forEach(el => {
+    el.addEventListener('mouseenter', () => els.cursor.classList.add('hover'));
+    el.addEventListener('mouseleave', () => els.cursor.classList.remove('hover'));
+});
+
+// ✨ PARTICLE BACKGROUND
+const initParticles = () => {
+    const canvas = els.particleCanvas;
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+    resize(); window.addEventListener('resize', resize);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 2 + 0.5; this.speedX = (Math.random() - 0.5) * 0.5;
+            this.speedY = (Math.random() - 0.5) * 0.5; this.opacity = Math.random() * 0.5 + 0.1;
+        }
+        update() {
+            this.x += this.speedX; this.y += this.speedY;
+            if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+            if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+        }
+        draw() {
+            ctx.fillStyle = `rgba(57, 255, 20, ${this.opacity})`;
+            ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
+        }
+    }
+    for (let i = 0; i < 50; i++) particles.push(new Particle());
+    const animate = () => { ctx.clearRect(0, 0, canvas.width, canvas.height); particles.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(animate); };
+    animate();
+};
+
+// 🔄 SWIPER INITIALIZATION
+const initSwiper = (selector, paginationSelector) => {
+    new Swiper(selector, {
+        slidesPerView: 1.5, spaceBetween: 20,
+        breakpoints: { 640: { slidesPerView: 3, spaceBetween: 20 }, 1024: { slidesPerView: 5, spaceBetween: 25 }, 1280: { slidesPerView: 6, spaceBetween: 25 } },
+        pagination: { el: paginationSelector, clickable: true },
+    });
+};
+
+// 🚀 INITIALIZATION
+document.addEventListener('DOMContentLoaded', () => {
+    initTheme(); initParticles(); renderFavorites();
+    document.getElementById('year').textContent = new Date().getFullYear();
+    
+    if (TMDB_API_KEY === 'YOUR_TMDB_API_KEY') {
+        alert('🎬 Cinemanova Setup Required\n\nPlease add your TMDB API Key in app.js (line 7) to load movie data.\nGet one free at https://www.themoviedb.org/settings/api');
+        return;
+    }
+    loadHero(); renderGenreFilters(); renderTrending(); renderPopular(); renderTopRated();
+});
