@@ -3,20 +3,17 @@
  * Uses TMDB API for data, YouTube for trailers, localStorage for favorites & theme
  */
 
-// 🌟 CONFIGURATION
-const TMDB_API_KEY = 'c1fc2189591a15fbec101a32dcd46b9d'; // 🔑 Replace with your TMDB API Key
+const TMDB_API_KEY = 'YOUR_TMDB_API_KEY';
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 const TMDB_IMG_BASE = 'https://image.tmdb.org/t/p/';
 const IMG_SIZE = { backdrop: 'original', poster: 'w500', cast: 'w185' };
 
-// 🌐 STATE
 let currentPage = { popular: 1, topRated: 1 };
 let currentGenre = null;
 let favorites = JSON.parse(localStorage.getItem('cinemanovaFavorites')) || [];
 let currentMovie = null;
 let isLoading = false;
 
-// 🎯 DOM ELEMENTS
 const els = {
     searchInput: document.getElementById('search-input'),
     searchResults: document.getElementById('search-results'),
@@ -44,28 +41,13 @@ const els = {
     favoritesContainer: document.getElementById('favorites-container'),
     noFavorites: document.getElementById('no-favorites'),
     genreFilters: document.getElementById('genre-filters'),
-    modal: document.getElementById('movie-modal'),
-    modalContent: document.getElementById('modal-content'),
-    modalBackdropImg: document.getElementById('modal-backdrop-img'),
-    modalTitle: document.getElementById('modal-title'),
-    modalRating: document.getElementById('modal-rating').querySelector('span'),
-    modalRuntime: document.getElementById('modal-runtime').querySelector('span'),
-    modalRelease: document.getElementById('modal-release').querySelector('span'),
-    modalGenres: document.getElementById('modal-genres'),
-    modalOverview: document.getElementById('modal-overview'),
-    modalCast: document.getElementById('modal-cast'),
-    modalTrailer: document.getElementById('modal-trailer'),
-    noTrailer: document.getElementById('no-trailer'),
-    modalClose: document.getElementById('modal-close'),
-    modalBackdrop: document.getElementById('modal-backdrop'),
-    modalFavBtn: document.getElementById('modal-fav-btn'),
     cursor: document.getElementById('cursor'),
     particleCanvas: document.getElementById('particle-bg')
 };
 
-// 🛠️ UTILITY FUNCTIONS
-const formatRuntime = (minutes) => { if (!minutes) return 'N/A'; return `${Math.floor(minutes / 60)}h ${minutes % 60}m`; };
-const formatYear = (dateStr) => dateStr ? dateStr.substring(0, 4) : 'N/A';
+// 🛠️ UTILITIES
+const formatRuntime = (m) => m ? `${Math.floor(m / 60)}h ${m % 60}m` : 'N/A';
+const formatYear = (d) => d ? d.substring(0, 4) : 'N/A';
 const isFavorite = (id) => favorites.some(f => f.id === id);
 
 const toggleFavoriteState = (movie, btnEl) => {
@@ -82,7 +64,7 @@ const toggleFavoriteState = (movie, btnEl) => {
     updateHeroFavBtn();
 };
 
-// 🎬 API FETCHING
+// 🎬 API
 const fetchData = async (endpoint, params = {}) => {
     const url = new URL(`${TMDB_BASE_URL}${endpoint}`);
     url.searchParams.append('api_key', TMDB_API_KEY);
@@ -92,22 +74,12 @@ const fetchData = async (endpoint, params = {}) => {
     return await res.json();
 };
 
-const fetchMovieVideos = async (id) => {
-    const data = await fetchData(`/movie/${id}/videos`);
-    return data.results.filter(v => v.site === 'YouTube' && v.type === 'Trailer').slice(0, 1);
-};
-
-const fetchMovieCredits = async (id) => {
-    const data = await fetchData(`/movie/${id}/credits`);
-    return data.cast.slice(0, 8);
-};
-
-// 🖼️ RENDER FUNCTIONS
+// 🖼️ RENDER
 const createMovieCard = (movie, delay = 0) => {
     const rating = Math.round(movie.vote_average * 10);
     const isFav = isFavorite(movie.id);
     return `
-        <div class="fade-in-up glass-card rounded-xl overflow-hidden cursor-pointer group relative" 
+        <div class="fade-in-up glass-card rounded-xl overflow-hidden cursor-pointer group relative swiper-slide" 
              style="animation-delay: ${delay}ms" data-id="${movie.id}">
             <div class="relative overflow-hidden aspect-[2/3]">
                 <img src="${TMDB_IMG_BASE}${IMG_SIZE.poster}${movie.poster_path}" 
@@ -155,7 +127,7 @@ const renderPopular = async (page = 1) => {
     try {
         const data = await fetchData('/movie/popular', { page, ...(currentGenre && { with_genres: currentGenre }) });
         els.popularSkeleton.classList.add('hidden');
-        els.popularContainer.innerHTML += data.results.map((m, i) => createMovieCard(m, i * 100)).join('');
+        els.popularContainer.innerHTML = data.results.map((m, i) => createMovieCard(m, i * 100)).join('');
         currentPage.popular = data.page;
         renderPagination('popular-pagination', data.total_pages, 'popular');
         attachCardListeners(els.popularContainer);
@@ -189,11 +161,8 @@ const renderPagination = (containerId, totalPages, type) => {
     const container = document.getElementById(containerId);
     if (!container) return;
     let html = '';
-    const maxBtns = 5;
-    let start = Math.max(1, currentPage[type] - 2);
-    let end = Math.min(totalPages, start + maxBtns - 1);
-    if (end - start < maxBtns - 1) start = Math.max(1, end - maxBtns + 1);
-    
+    const start = Math.max(1, currentPage[type] - 2);
+    const end = Math.min(totalPages, start + 4);
     for (let i = start; i <= end; i++) {
         html += `<button class="px-4 py-2 rounded-lg ${currentPage[type] === i ? 'bg-neon text-black' : 'bg-white/10 hover:bg-white/20'} transition-colors" data-page="${i}">${i}</button>`;
     }
@@ -202,7 +171,7 @@ const renderPagination = (containerId, totalPages, type) => {
         btn.addEventListener('click', () => {
             const page = parseInt(btn.dataset.page);
             if (type === 'popular') renderPopular(page);
-            else if (type === 'topRated') renderTopRated(page);
+            else renderTopRated(page);
         });
     });
 };
@@ -217,15 +186,10 @@ const renderGenreFilters = async () => {
         
         els.genreFilters.querySelectorAll('.genre-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                document.querySelectorAll('.genre-btn').forEach(b => {
-                    b.classList.remove('bg-neon/20', 'border-neon/40', 'bg-neon', 'text-black');
-                    b.classList.add('bg-white/5', 'border-white/20');
-                });
-                btn.classList.remove('bg-white/5', 'border-white/20');
-                btn.classList.add('bg-neon', 'text-black');
+                document.querySelectorAll('.genre-btn').forEach(b => b.classList.replace('bg-neon', 'bg-white/5'), b.classList.replace('text-black', 'text-white'));
+                btn.classList.replace('bg-white/5', 'bg-neon');
+                btn.classList.replace('text-white', 'text-black');
                 currentGenre = btn.dataset.genre;
-                els.popularContainer.innerHTML = '';
-                els.topRatedContainer.innerHTML = '';
                 renderPopular(1);
                 renderTopRated(1);
             });
@@ -233,7 +197,7 @@ const renderGenreFilters = async () => {
     } catch (e) { console.error(e); }
 };
 
-// 🎥 HERO SECTION
+// 🎥 HERO
 const loadHero = async () => {
     try {
         const trending = await fetchData('/trending/movie/day');
@@ -249,98 +213,24 @@ const loadHero = async () => {
         els.heroTitle.textContent = hero.title;
         currentMovie = { ...hero, runtime: details.runtime };
         
-        // Typing effect simulation
         const titleEl = els.heroTitle;
-        const originalText = titleEl.textContent;
-        titleEl.textContent = '';
+        const text = titleEl.textContent; titleEl.textContent = '';
         let i = 0;
         const type = setInterval(() => {
-            if (i < originalText.length) { titleEl.textContent += originalText.charAt(i); i++; }
-            else { clearInterval(type); }
+            if (i < text.length) titleEl.textContent += text.charAt(i++);
+            else clearInterval(type);
         }, 80);
         
-        els.heroWatchBtn.onclick = () => openModal(hero.id);
+        els.heroWatchBtn.onclick = () => window.location.href = `view.html?movieId=${hero.id}`;
         els.heroFavBtn.onclick = () => toggleFavoriteState(currentMovie, els.heroFavBtn);
         updateHeroFavBtn();
     } catch (e) { console.error(e); }
 };
 
 const updateHeroFavBtn = () => {
-    if (currentMovie && isFavorite(currentMovie.id)) {
-        els.heroFavBtn.innerHTML = '<i class="fa-solid fa-heart text-neon"></i> In Favorites';
-    } else {
-        els.heroFavBtn.innerHTML = '<i class="fa-regular fa-heart"></i> Add to Favorites';
-    }
-};
-
-// 📦 MODAL
-const openModal = async (id) => {
-    els.modal.classList.remove('hidden');
-    setTimeout(() => { els.modalContent.style.transform = 'scale(1)'; els.modalContent.style.opacity = '1'; }, 50);
-    document.body.style.overflow = 'hidden';
-
-    const movie = await fetchData(`/movie/${id}`);
-    currentMovie = movie;
-    
-    els.modalBackdropImg.src = movie.backdrop_path ? `${TMDB_IMG_BASE}${IMG_SIZE.backdrop}${movie.backdrop_path}` : 'https://placehold.co/1920x1080?text=No+Backdrop';
-    els.modalTitle.textContent = movie.title;
-    els.modalRating.textContent = movie.vote_average.toFixed(1);
-    els.modalRuntime.textContent = formatRuntime(movie.runtime);
-    els.modalRelease.textContent = formatYear(movie.release_date);
-    els.modalOverview.textContent = movie.overview;
-    els.modalBadge.textContent = movie.original_language.toUpperCase();
-    els.modalGenres.innerHTML = movie.genres.map(g => `<span class="px-3 py-1 bg-neon/20 text-neon rounded-full text-xs font-bold">${g.name}</span>`).join('');
-    
-    const cast = await fetchMovieCredits(id);
-    els.modalCast.innerHTML = cast.map(c => `
-        <div class="flex flex-col items-center min-w-[70px] text-center">
-            <img src="${c.profile_path ? TMDB_IMG_BASE + IMG_SIZE.cast + c.profile_path : 'https://placehold.co/185x185?text=?'}" 
-                 class="w-14 h-14 rounded-full object-cover mb-1 border border-neon/30">
-            <span class="text-xs text-gray-300 line-clamp-1">${c.name}</span>
-            <span class="text-[10px] text-gray-500 line-clamp-1">${c.character}</span>
-        </div>
-    `).join('');
-
-    els.modalTrailer.innerHTML = '';
-    const videos = await fetchMovieVideos(id);
-    if (videos.length > 0) {
-        els.noTrailer.classList.add('hidden');
-        els.modalTrailer.innerHTML = `<iframe class="w-full h-full" src="https://www.youtube.com/embed/${videos[0].key}?autoplay=0&modestbranding=1&rel=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-    } else { els.noTrailer.classList.remove('hidden'); }
-    
-    updateModalFavBtn();
-};
-
-const updateModalFavBtn = () => {
-    if (currentMovie && isFavorite(currentMovie.id)) {
-        els.modalFavBtn.innerHTML = '<i class="fa-solid fa-heart text-neon"></i> <span>Remove from Favorites</span>';
-    } else {
-        els.modalFavBtn.innerHTML = '<i class="fa-regular fa-heart"></i> <span>Add to Favorites</span>';
-    }
-    els.modalFavBtn.onclick = () => toggleFavoriteState(currentMovie, els.modalFavBtn);
-};
-
-const closeModal = () => {
-    els.modalContent.style.transform = 'scale(0.95)';
-    els.modalContent.style.opacity = '0';
-    setTimeout(() => { els.modal.classList.add('hidden'); document.body.style.overflow = 'auto'; els.modalTrailer.innerHTML = ''; }, 300);
-};
-
-const attachCardListeners = (container) => {
-    container.querySelectorAll('[data-id]').forEach(el => {
-        el.addEventListener('click', (e) => {
-            if (e.target.closest('.fav-btn') || e.target.closest('#modal-fav-btn')) return;
-            openModal(parseInt(el.dataset.id));
-        });
-    });
-    container.querySelectorAll('.fav-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            const id = parseInt(btn.dataset.id);
-            const data = await fetchData(`/movie/${id}`);
-            toggleFavoriteState(data, btn);
-        });
-    });
+    els.heroFavBtn.innerHTML = currentMovie && isFavorite(currentMovie.id) 
+        ? '<i class="fa-solid fa-heart text-neon"></i> In Favorites'
+        : '<i class="fa-regular fa-heart"></i> Add to Favorites';
 };
 
 // 🔍 SEARCH
@@ -364,20 +254,19 @@ els.searchInput.addEventListener('input', (e) => {
                     </div>
                 `).join('');
                 els.searchResults.querySelectorAll('.search-item').forEach(item => {
-                    item.addEventListener('click', () => { openModal(parseInt(item.dataset.id)); els.searchResults.classList.add('hidden'); els.searchInput.value = ''; });
+                    item.addEventListener('click', () => { window.location.href = `view.html?movieId=${item.dataset.id}`; });
                 });
             } else { els.searchResults.classList.add('hidden'); }
         } catch (e) { console.error(e); }
     }, 500);
 });
 
-// 🎨 THEME TOGGLE
+// 🎨 THEME
 const initTheme = () => {
     const saved = localStorage.getItem('cinemanovaTheme') || 'dark';
     if (saved === 'light') {
         document.documentElement.classList.remove('dark');
-        els.themeToggle.classList.remove('bg-gray-700');
-        els.themeToggle.classList.add('bg-gray-300');
+        els.themeToggle.classList.replace('bg-gray-700', 'bg-gray-300');
         els.themeIcon.classList.add('rotate-180');
     }
 };
@@ -386,35 +275,28 @@ els.themeToggle.addEventListener('click', () => {
     if (isDark) {
         document.documentElement.classList.remove('dark');
         localStorage.setItem('cinemanovaTheme', 'light');
-        els.themeToggle.classList.remove('bg-gray-700');
-        els.themeToggle.classList.add('bg-gray-300');
+        els.themeToggle.classList.replace('bg-gray-700', 'bg-gray-300');
         els.themeIcon.classList.add('rotate-180');
     } else {
         document.documentElement.classList.add('dark');
         localStorage.setItem('cinemanovaTheme', 'dark');
-        els.themeToggle.classList.remove('bg-gray-300');
-        els.themeToggle.classList.add('bg-gray-700');
+        els.themeToggle.classList.replace('bg-gray-300', 'bg-gray-700');
         els.themeIcon.classList.remove('rotate-180');
     }
 });
 
-// 📱 UI & EVENT HANDLERS
+// 📱 UI
 let lastScroll = 0;
 window.addEventListener('scroll', () => {
     const current = window.scrollY;
-    if (current > lastScroll && current > 100) els.navbar.style.transform = 'translateY(-100%)';
-    else els.navbar.style.transform = 'translateY(0)';
+    els.navbar.style.transform = current > lastScroll && current > 100 ? 'translateY(-100%)' : 'translateY(0)';
     lastScroll = current;
-if (current > 500) { els.backToTop.style.transform = 'translateY(0)'; els.backToTop.style.opacity = '1'; }
-    else { els.backToTop.style.transform = 'translateY(5rem)'; els.backToTop.style.opacity = '0'; }
+    els.backToTop.style.transform = current > 500 ? 'translateY(0)' : 'translateY(5rem)';
+    els.backToTop.style.opacity = current > 500 ? '1' : '0';
 });
 
 els.backToTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 els.mobileMenuBtn.addEventListener('click', () => els.mobileMenu.classList.toggle('hidden'));
-els.modalClose.addEventListener('click', closeModal);
-els.modalBackdrop.addEventListener('click', closeModal);
-document.addEventListener('keydown', (e) => e.key === 'Escape' && closeModal());
-
 document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('bg-neon/20', 'border-neon/40'));
@@ -423,58 +305,61 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
     });
 });
 
-// 🖱️ CUSTOM CURSOR
+// 🖱️ CURSOR
 document.addEventListener('mousemove', (e) => { els.cursor.style.left = e.clientX + 'px'; els.cursor.style.top = e.clientY + 'px'; });
-document.querySelectorAll('button, a, .glass-card, .swiper-slide').forEach(el => {
+document.querySelectorAll('button, a, .glass-card, .search-item').forEach(el => {
     el.addEventListener('mouseenter', () => els.cursor.classList.add('hover'));
     el.addEventListener('mouseleave', () => els.cursor.classList.remove('hover'));
 });
 
-// ✨ PARTICLE BACKGROUND
+// ✨ PARTICLES
 const initParticles = () => {
-    const canvas = els.particleCanvas;
-    const ctx = canvas.getContext('2d');
+    const ctx = els.particleCanvas.getContext('2d');
     let particles = [];
-    const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
-    resize(); window.addEventListener('resize', resize);
-    
-    class Particle {
-        constructor() {
-            this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height;
-            this.size = Math.random() * 2 + 0.5; this.speedX = (Math.random() - 0.5) * 0.5;
-            this.speedY = (Math.random() - 0.5) * 0.5; this.opacity = Math.random() * 0.5 + 0.1;
-        }
-        update() {
-            this.x += this.speedX; this.y += this.speedY;
-            if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
-            if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
-        }
-        draw() {
-            ctx.fillStyle = `rgba(57, 255, 20, ${this.opacity})`;
-            ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
-        }
-    }
-    for (let i = 0; i < 50; i++) particles.push(new Particle());
-    const animate = () => { ctx.clearRect(0, 0, canvas.width, canvas.height); particles.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(animate); };
+    const resize = () => { els.particleCanvas.width = innerWidth; els.particleCanvas.height = innerHeight; };
+    resize(); addEventListener('resize', resize);
+    for (let i=0; i<50; i++) particles.push({
+        x: Math.random()*innerWidth, y: Math.random()*innerHeight, s: Math.random()*2+0.5,
+        vx: (Math.random()-0.5)*0.5, vy: (Math.random()-0.5)*0.5, o: Math.random()*0.5+0.1,
+        update() { this.x+=this.vx; this.y+=this.vy; if(this.x<0||this.x>innerWidth) this.vx*=-1; if(this.y<0||this.y>innerHeight) this.vy*=-1; },
+        draw() { ctx.fillStyle=`rgba(57,255,20,${this.o})`; ctx.beginPath(); ctx.arc(this.x,this.y,this.s,0,Math.PI*2); ctx.fill(); }
+    });
+    const animate = () => { ctx.clearRect(0,0,innerWidth,innerHeight); particles.forEach(p=>{p.update();p.draw();}); requestAnimationFrame(animate); };
     animate();
 };
 
-// 🔄 SWIPER INITIALIZATION
+// 🔄 SWIPER
 const initSwiper = (selector, paginationSelector) => {
     new Swiper(selector, {
         slidesPerView: 1.5, spaceBetween: 20,
-        breakpoints: { 640: { slidesPerView: 3, spaceBetween: 20 }, 1024: { slidesPerView: 5, spaceBetween: 25 }, 1280: { slidesPerView: 6, spaceBetween: 25 } },
+        breakpoints: { 640: { slidesPerView: 3 }, 1024: { slidesPerView: 5 }, 1280: { slidesPerView: 6 } },
         pagination: { el: paginationSelector, clickable: true },
     });
 };
 
-// 🚀 INITIALIZATION
+// 🔗 CARD CLICK NAVIGATION (Replaces Modal)
+const attachCardListeners = (container) => {
+    container.querySelectorAll('[data-id]').forEach(el => {
+        el.addEventListener('click', (e) => {
+            if (e.target.closest('.fav-btn')) return;
+            window.location.href = `view.html?movieId=${el.dataset.id}`;
+        });
+    });
+    container.querySelectorAll('.fav-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const data = await fetchData(`/movie/${btn.dataset.id}`);
+            toggleFavoriteState(data, btn);
+        });
+    });
+};
+
+// 🚀 INIT
 document.addEventListener('DOMContentLoaded', () => {
     initTheme(); initParticles(); renderFavorites();
     document.getElementById('year').textContent = new Date().getFullYear();
-    
     if (TMDB_API_KEY === 'YOUR_TMDB_API_KEY') {
-        alert('🎬 Cinemanova Setup Required\n\nPlease add your TMDB API Key in app.js (line 7) to load movie data.\nGet one free at https://www.themoviedb.org/settings/api');
+        alert('🎬 Cinemanova Setup\n\nReplace YOUR_TMDB_API_KEY in app.js with your free TMDB API key.\nGet it at: https://www.themoviedb.org/settings/api');
         return;
     }
     loadHero(); renderGenreFilters(); renderTrending(); renderPopular(); renderTopRated();
