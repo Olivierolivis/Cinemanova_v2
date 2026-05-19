@@ -3,7 +3,7 @@
  * Uses TMDB API for data, YouTube for trailers, localStorage for favorites & theme
  */
 
-const TMDB_API_KEY = 'YOUR_TMDB_API_KEY';
+const TMDB_API_KEY = 'c1fc2189591a15fbec101a32dcd46b9d';
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 const TMDB_IMG_BASE = 'https://image.tmdb.org/t/p/';
 const IMG_SIZE = { backdrop: 'original', poster: 'w500', cast: 'w185' };
