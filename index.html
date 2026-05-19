@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cinemanova | Premium Streaming Experience</title>
+    <!-- Google Fonts: Poppins (Display/Logo) + Inter (Body/UI) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        neon: { DEFAULT: '#39FF14', dark: '#0A2E00', glow: 'rgba(57, 255, 20, 0.6)', soft: '#6BFF6B' },
+                        dark: { bg: '#050505', card: '#0A0A0A', glass: 'rgba(20, 20, 20, 0.7)' }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        display: ['Poppins', 'system-ui', 'sans-serif']
+                    },
+                    letterSpacing: { cinematic: '0.1em' },
+                    animation: {
+                        'pulse-glow': 'pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 3s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        'pulse-glow': {
+                            '0%, 100%': { boxShadow: '0 0 5px #39FF14, 0 0 10px #39FF14' },
+                            '50%': { boxShadow: '0 0 10px #39FF14, 0 0 20px #39FF14, 0 0 30px #39FF14' }
+                        },
+                        'float': {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Swiper JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-dark-bg text-white dark:text-white font-sans overflow-x-hidden transition-colors duration-500">
+
+    <!-- Particle Background Canvas -->
+    <canvas id="particle-bg" class="fixed top-0 left-0 w-full h-full pointer-events-none z-0 opacity-40"></canvas>
+    <!-- Custom Cursor -->
+    <div id="cursor" class="fixed w-8 h-8 border-2 border-neon rounded-full pointer-events-none z-50 transition-transform duration-100 -translate-x-1/2 -translate-y-1/2 mix-blend-difference hidden md:block"></div>
+
+    <!-- Navbar -->
+    <nav id="navbar" class="fixed top-0 w-full z-40 backdrop-blur-xl bg-black/40 border-b border-neon/20 transition-all duration-500">
+        <div class="container mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
+            <a href="#" class="flex items-center gap-2 group">
+                <i class="fa-solid fa-film text-3xl text-neon animate-pulse-glow rounded-lg"></i>
+                <span class="font-display text-2xl font-extrabold tracking-cinematic text-neon group-hover:animate-pulse">
+                    CINE<span class="text-white font-semibold">MANOVA</span>
+                </span>
+            </a>
+            <ul class="hidden md:flex items-center gap-8">
+                <li><a href="#home" class="nav-link text-gray-300 hover:text-neon transition-colors">Home</a></li>
+                <li><a href="#trending" class="nav-link text-gray-300 hover:text-neon transition-colors">Trending</a></li>
+                <li><a href="#popular" class="nav-link text-gray-300 hover:text-neon transition-colors">Popular</a></li>
+                <li><a href="#top-rated" class="nav-link text-gray-300 hover:text-neon transition-colors">Top Rated</a></li>
+                <li><a href="#favorites" class="nav-link text-gray-300 hover:text-neon transition-colors flex items-center gap-1"><i class="fa-solid fa-heart"></i> Favorites</a></li>
+            </ul>
+            <div class="flex items-center gap-4">
+                <div class="relative hidden md:block">
+                    <input type="text" id="search-input" placeholder="Search movies..." 
+                        class="bg-black/50 border border-neon/30 rounded-full px-4 py-2 pl-10 focus:outline-none focus:border-neon focus:shadow-[0_0_15px_rgba(57,255,20,0.4)] transition-all w-64 text-sm">
+                    <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <div id="search-results" class="absolute top-full mt-2 w-full bg-dark-glass backdrop-blur-xl border border-neon/20 rounded-xl max-h-96 overflow-y-auto hidden z-50"></div>
+                </div>
+                <button id="theme-toggle" class="w-14 h-7 bg-gray-700 rounded-full relative transition-colors duration-500 focus:outline-none" aria-label="Toggle Theme">
+                    <span class="absolute top-1 left-1 w-5 h-5 bg-white rounded-full transition-transform duration-300 flex items-center justify-center">
+                        <i class="fa-solid fa-moon text-dark-bg text-xs transition-transform duration-300" id="theme-icon"></i>
+                    </span>
+                </button>
+                <button id="mobile-menu-btn" class="md:hidden text-2xl hover:text-neon transition-colors"><i class="fa-solid fa-bars"></i></button>
+            </div>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden bg-dark-card border-t border-neon/20 py-4 px-4 space-y-4">
+            <a href="#home" class="block text-gray-300 hover:text-neon transition-colors">Home</a>
+            <a href="#trending" class="block text-gray-300 hover:text-neon transition-colors">Trending</a>
+            <a href="#popular" class="block text-gray-300 hover:text-neon transition-colors">Popular</a>
+            <a href="#top-rated" class="block text-gray-300 hover:text-neon transition-colors">Top Rated</a>
+            <a href="#favorites" class="block text-gray-300 hover:text-neon transition-colors">Favorites</a>
+            <div class="relative">
+                <input type="text" id="mobile-search" placeholder="Search movies..." 
+                    class="w-full bg-black/50 border border-neon/30 rounded-full px-4 py-2 pl-10 focus:outline-none focus:border-neon">
+                <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="relative w-full min-h-screen flex items-center justify-center overflow-hidden pt-16">
+        <div id="hero-backdrop" class="absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-1000"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/70 to-transparent"></div>
+        <div class="absolute inset-0 bg-gradient-to-r from-dark-bg/90 via-transparent to-dark-bg/90"></div>
+        <div class="container mx-auto px-4 md:px-8 relative z-10 pt-20">
+            <div id="hero-content" class="max-w-3xl">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="bg-neon text-black px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest animate-pulse">Now Streaming</span>
+                    <span class="text-gray-300 text-sm" id="hero-release-date"></span>
+                </div>
+                <h1 id="hero-title" class="font-display text-5xl md:text-7xl font-black mb-4 leading-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-neon-soft to-neon">
+                    Loading...
+                </h1>
+                <div id="hero-meta" class="flex items-center gap-4 mb-6 text-sm text-gray-300">
+                    <span id="hero-rating" class="flex items-center gap-1"><i class="fa-solid fa-star text-neon"></i> <span></span></span>
+                    <span id="hero-runtime" class="flex items-center gap-1"><i class="fa-solid fa-clock text-neon"></i> <span></span></span>
+                    <span id="hero-genres" class="flex items-center gap-1"><i class="fa-solid fa-film text-neon"></i> <span></span></span>
+                </div>
+                <p id="hero-overview" class="text-gray-400 text-lg md:text-xl mb-8 line-clamp-3 max-w-2xl"></p>
+                <div class="flex flex-wrap gap-4">
+                    <button id="hero-watch-btn" class="px-8 py-3 bg-neon text-black font-bold rounded-full hover:shadow-[0_0_20px_rgba(57,255,20,0.6)] transition-all transform hover:scale-105 flex items-center gap-2">
+                        <i class="fa-solid fa-play"></i> Watch Trailer
+                    </button>
+                    <button id="hero-fav-btn" class="px-8 py-3 bg-white/10 backdrop-blur-md border border-white/20 text-white font-bold rounded-full hover:border-neon hover:text-neon transition-all flex items-center gap-2">
+                        <i class="fa-regular fa-heart"></i> Add to Favorites
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="absolute bottom-10 left-1/2 -translate-x-1/2 animate-float">
+            <i class="fa-solid fa-chevron-down text-neon text-2xl opacity-70"></i>
+        </div>
+    </section>
+
+    <!-- Category Filters -->
+    <section class="container mx-auto px-4 md:px-8 py-8">
+        <div id="genre-filters" class="flex flex-wrap justify-center gap-3"></div>
+    </section>
+
+    <!-- Trending Movies -->
+    <section id="trending" class="container mx-auto px-4 md:px-8 py-12">
+        <div class="flex items-center justify-between mb-8">
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-neon flex items-center gap-3"><i class="fa-solid fa-fire-flame-curved"></i> Trending Now</h2>
+            <div class="flex gap-2">
+                <button class="filter-btn active px-4 py-2 rounded-full bg-neon/20 border border-neon/40 text-sm hover:bg-neon hover:text-black transition-all" data-time="day">Today</button>
+                <button class="filter-btn px-4 py-2 rounded-full bg-white/5 border border-white/20 text-sm hover:bg-neon hover:text-black transition-all" data-time="week">This Week</button>
+            </div>
+        </div>
+        <div id="trending-skeleton" class="hidden grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+            <script>for(let i=0;i<6;i++) document.write('<div class="animate-pulse"><div class="bg-gray-800 h-80 rounded-xl mb-3 shimmer"></div><div class="bg-gray-800 h-4 w-3/4 rounded mb-2"></div><div class="bg-gray-800 h-3 w-1/2 rounded"></div></div>');</script>
+        </div>
+        <div class="swiper trending-swiper pb-8">
+            <div class="swiper-wrapper" id="trending-container"></div>
+        </div>
+        <div class="swiper-pagination trending-pagination"></div>
+    </section>
+
+    <!-- Popular Movies -->
+    <section id="popular" class="container mx-auto px-4 md:px-8 py-12">
+        <h2 class="font-display text-3xl md:text-4xl font-bold text-neon flex items-center gap-3 mb-8"><i class="fa-solid fa-rocket"></i> Popular Movies</h2>
+        <div id="popular-skeleton" class="hidden grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            <script>for(let i=0;i<5;i++) document.write('<div class="animate-pulse"><div class="bg-gray-800 h-80 rounded-xl mb-3 shimmer"></div><div class="bg-gray-800 h-4 w-3/4 rounded mb-2"></div><div class="bg-gray-800 h-3 w-1/2 rounded"></div></div>');</script>
+        </div>
+        <div id="popular-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6"></div>
+        <div id="popular-pagination" class="flex justify-center mt-10 gap-2"></div>
+    </section>
+
+    <!-- Top Rated Movies -->
+    <section id="top-rated" class="container mx-auto px-4 md:px-8 py-12">
+        <h2 class="font-display text-3xl md:text-4xl font-bold text-neon flex items-center gap-3 mb-8"><i class="fa-solid fa-trophy"></i> Top Rated</h2>
+        <div id="toprated-skeleton" class="hidden grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            <script>for(let i=0;i<5;i++) document.write('<div class="animate-pulse"><div class="bg-gray-800 h-80 rounded-xl mb-3 shimmer"></div><div class="bg-gray-800 h-4 w-3/4 rounded mb-2"></div><div class="bg-gray-800 h-3 w-1/2 rounded"></div></div>');</script>
+        </div>
+        <div id="toprated-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6"></div>
+        <div id="toprated-pagination" class="flex justify-center mt-10 gap-2"></div>
+    </section>
+
+    <!-- Favorites Section -->
+    <section id="favorites" class="container mx-auto px-4 md:px-8 py-12">
+        <h2 class="font-display text-3xl md:text-4xl font-bold text-neon flex items-center gap-3 mb-8"><i class="fa-solid fa-heart"></i> Your Favorites</h2>
+        <div id="favorites-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 min-h-[200px]"></div>
+        <p id="no-favorites" class="text-center text-gray-500 hidden">No favorites added yet. Click the heart icon on movies to save them here.</p>
+    </section>
+
+    <!-- Movie Detail Modal -->
+    <div id="movie-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-xl" id="modal-backdrop"></div>
+        <div class="absolute inset-4 md:inset-12 bg-dark-card border border-neon/30 rounded-2xl overflow-hidden flex flex-col md:flex-row shadow-2xl transform transition-all duration-500 scale-95 opacity-0" id="modal-content">
+            <button id="modal-close" class="absolute top-4 right-4 z-20 w-10 h-10 bg-black/50 backdrop-blur rounded-full flex items-center justify-center hover:bg-neon hover:text-black transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            <div class="w-full md:w-2/3 h-64 md:h-full relative">
+                <img id="modal-backdrop-img" src="" alt="Backdrop" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-to-t from-dark-card via-transparent to-transparent"></div>
+                <div class="absolute bottom-4 left-4 md:bottom-8 md:left-8"><span id="modal-badge" class="bg-neon text-black px-3 py-1 rounded-full text-xs font-bold uppercase mb-2 inline-block"></span></div>
+            </div>
+            <div class="w-full md:w-1/3 p-6 md:p-8 overflow-y-auto flex flex-col">
+                <h2 id="modal-title" class="font-display text-3xl md:text-4xl font-bold mb-2 text-white"></h2>
+                <div id="modal-meta" class="flex flex-wrap items-center gap-4 mb-6 text-sm text-gray-300">
+                    <span id="modal-rating" class="flex items-center gap-1 text-neon"><i class="fa-solid fa-star"></i> <span></span></span>
+                    <span id="modal-runtime" class="flex items-center gap-1"><i class="fa-solid fa-clock"></i> <span></span></span>
+                    <span id="modal-release" class="flex items-center gap-1"><i class="fa-solid fa-calendar"></i> <span></span></span>
+                </div>
+                <div id="modal-genres" class="flex flex-wrap gap-2 mb-6"></div>
+                <p id="modal-overview" class="text-gray-400 mb-6 leading-relaxed"></p>
+                <h3 class="font-bold text-lg mb-3 text-neon">Cast</h3>
+                <div id="modal-cast" class="flex gap-4 overflow-x-auto pb-4 mb-6"></div>
+                <div class="mt-auto">
+                    <h3 class="font-bold text-lg mb-3 text-neon">Trailer</h3>
+                    <div id="modal-trailer" class="aspect-video rounded-xl overflow-hidden bg-black"></div>
+                    <p id="no-trailer" class="text-gray-500 text-center py-4 hidden">No trailer available</p>
+                </div>
+                <button id="modal-fav-btn" class="mt-6 w-full py-3 bg-white/10 backdrop-blur border border-neon/30 text-white font-bold rounded-full hover:bg-neon hover:text-black transition-all flex items-center justify-center gap-2">
+                    <i class="fa-regular fa-heart"></i> <span>Add to Favorites</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-black/50 border-t border-neon/20 pt-16 pb-8 mt-20">
+        <div class="container mx-auto px-4 md:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+                <div>
+                    <a href="#" class="flex items-center gap-2 mb-4">
+                        <i class="fa-solid fa-film text-3xl text-neon"></i>
+                        <span class="font-display text-2xl font-bold text-neon">CINE<span class="text-white font-semibold">MANOVA</span></span>
+                    </a>
+                    <p class="text-gray-400 text-sm">Experience cinema in a new dimension. Premium streaming with cinematic aesthetics and seamless discovery.</p>
+                </div>
+                <div>
+                    <h4 class="font-bold text-neon mb-4">Quick Links</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#home" class="hover:text-white transition-colors">Home</a></li>
+                        <li><a href="#trending" class="hover:text-white transition-colors">Trending</a></li>
+                        <li><a href="#popular" class="hover:text-white transition-colors">Popular</a></li>
+                        <li><a href="#top-rated" class="hover:text-white transition-colors">Top Rated</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-neon mb-4">Legal</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Terms of Service</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Cookie Policy</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-neon mb-4">Follow Us</h4>
+                    <div class="flex gap-4">
+                        <a href="#" class="w-10 h-10 bg-white/5 backdrop-blur border border-white/20 rounded-full flex items-center justify-center hover:border-neon hover:text-neon hover:shadow-[0_0_15px_rgba(57,255,20,0.4)] transition-all"><i class="fa-brands fa-facebook-f"></i></a>
+                        <a href="#" class="w-10 h-10 bg-white/5 backdrop-blur border border-white/20 rounded-full flex items-center justify-center hover:border-neon hover:text-neon hover:shadow-[0_0_15px_rgba(57,255,20,0.4)] transition-all"><i class="fa-brands fa-twitter"></i></a>
+                        <a href="#" class="w-10 h-10 bg-white/5 backdrop-blur border border-white/20 rounded-full flex items-center justify-center hover:border-neon hover:text-neon hover:shadow-[0_0_15px_rgba(57,255,20,0.4)] transition-all"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="#" class="w-10 h-10 bg-white/5 backdrop-blur border border-white/20 rounded-full flex items-center justify-center hover:border-neon hover:text-neon hover:shadow-[0_0_15px_rgba(57,255,20,0.4)] transition-all"><i class="fa-brands fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-white/10 pt-8 text-center text-gray-500 text-sm">
+                <p>&copy; <span id="year"></span> Cinemanova. Powered by TMDB. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <button id="back-to-top" class="fixed bottom-6 right-6 w-12 h-12 bg-neon/90 text-black rounded-full flex items-center justify-center shadow-lg hover:shadow-[0_0_20px_rgba(57,255,20,0.6)] transform translate-y-20 opacity-0 transition-all duration-300 z-40" aria-label="Back to Top">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
+
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
