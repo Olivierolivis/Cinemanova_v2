@@ -3,7 +3,7 @@
  * Uses TMDB API for data, YouTube for trailers, localStorage for favorites & theme
  */
 
-const TMDB_API_KEY = 'c1fc2189591a15fbec101a32dcd46b9d';
+const TMDB_API_KEY = 'YOUR_TMDB_API_KEY';
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 const TMDB_IMG_BASE = 'https://image.tmdb.org/t/p/';
 const IMG_SIZE = { backdrop: 'original', poster: 'w500', cast: 'w185' };
@@ -79,7 +79,7 @@ const createMovieCard = (movie, delay = 0) => {
     const rating = Math.round(movie.vote_average * 10);
     const isFav = isFavorite(movie.id);
     return `
-        <div class="fade-in-up glass-card rounded-xl overflow-hidden cursor-pointer group relative swiper-slide" 
+        <div class="fade-in-up glass-card rounded-xl overflow-hidden cursor-pointer group relative" 
              style="animation-delay: ${delay}ms" data-id="${movie.id}">
             <div class="relative overflow-hidden aspect-[2/3]">
                 <img src="${TMDB_IMG_BASE}${IMG_SIZE.poster}${movie.poster_path}" 
@@ -328,16 +328,38 @@ const initParticles = () => {
     animate();
 };
 
-// 🔄 SWIPER
+// 🔄 SWIPER INITIALIZATION (RESPONSIVE & BULLET-PROOF)
 const initSwiper = (selector, paginationSelector) => {
-    new Swiper(selector, {
-        slidesPerView: 1.5, spaceBetween: 20,
-        breakpoints: { 640: { slidesPerView: 3 }, 1024: { slidesPerView: 5 }, 1280: { slidesPerView: 6 } },
-        pagination: { el: paginationSelector, clickable: true },
+    const container = document.querySelector(selector);
+    if (!container) return;
+    
+    // Destroy existing instance to prevent duplicates
+    if (container.swiper) container.swiper.destroy(true, true);
+
+    new Swiper(container, {
+        slidesPerView: 1.6,
+        spaceBetween: 12,
+        grabCursor: true,
+        loop: false,
+        speed: 600,
+        observer: true,
+        observeParents: true,
+        pagination: {
+            el: paginationSelector,
+            clickable: true,
+            dynamicBullets: true,
+        },
+        breakpoints: {
+            480: { slidesPerView: 2.2, spaceBetween: 14 },
+            640: { slidesPerView: 3, spaceBetween: 16 },
+            1024: { slidesPerView: 4.5, spaceBetween: 20 },
+            1280: { slidesPerView: 5.5, spaceBetween: 24 },
+            1536: { slidesPerView: 6.5, spaceBetween: 28 }
+        }
     });
 };
 
-// 🔗 CARD CLICK NAVIGATION (Replaces Modal)
+// 🔗 CARD CLICK NAVIGATION
 const attachCardListeners = (container) => {
     container.querySelectorAll('[data-id]').forEach(el => {
         el.addEventListener('click', (e) => {
