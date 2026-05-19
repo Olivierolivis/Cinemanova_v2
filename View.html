@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Details | Cinemanova</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: { colors: { neon: '#39FF14', dark: { bg: '#050505', card: '#0A0A0A' } }, fontFamily: { sans: ['Inter', 'system-ui'], display: ['Poppins', 'system-ui'] } } }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-dark-bg text-white font-sans transition-colors duration-500">
+    <canvas id="particle-bg" class="fixed inset-0 w-full h-full pointer-events-none z-0 opacity-30"></canvas>
+    <div id="cursor" class="fixed w-8 h-8 border-2 border-neon rounded-full pointer-events-none z-50 transition-transform duration-100 -translate-x-1/2 -translate-y-1/2 mix-blend-difference hidden md:block"></div>
+
+    <!-- Simple Navbar -->
+    <nav class="fixed top-0 w-full z-40 backdrop-blur-xl bg-black/40 border-b border-neon/20">
+        <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+            <a href="index.html" class="flex items-center gap-3">
+                <button class="w-10 h-10 bg-white/10 hover:bg-neon hover:text-black rounded-full flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </button>
+                <span class="font-display text-xl font-bold text-neon tracking-cinematic">CINE<span class="text-white">MANOVA</span></span>
+            </a>
+            <button id="theme-toggle" class="w-14 h-7 bg-gray-700 rounded-full relative transition-colors">
+                <span class="absolute top-1 left-1 w-5 h-5 bg-white rounded-full transition-transform flex items-center justify-center">
+                    <i class="fa-solid fa-moon text-dark-bg text-xs" id="theme-icon"></i>
+                </span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Movie Content -->
+    <main class="pt-20 min-h-screen">
+        <div id="loading-view" class="flex flex-col items-center justify-center h-[80vh] text-neon">
+            <div class="w-16 h-16 border-4 border-neon/30 border-t-neon rounded-full animate-spin mb-4"></div>
+            <p class="animate-pulse">Loading Cinematic Experience...</p>
+        </div>
+
+        <div id="movie-content" class="hidden">
+            <!-- Backdrop & Hero -->
+            <div class="relative h-[60vh] w-full">
+                <img id="v-backdrop" class="w-full h-full object-cover" alt="Backdrop">
+                <div class="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/60 to-transparent"></div>
+                <div class="absolute inset-0 bg-gradient-to-r from-dark-bg/80 via-transparent to-dark-bg/80"></div>
+                <div class="absolute bottom-0 left-0 w-full p-8 container mx-auto">
+                    <span id="v-badge" class="bg-neon text-black px-3 py-1 rounded-full text-xs font-bold uppercase mb-3 inline-block"></span>
+                    <h1 id="v-title" class="font-display text-4xl md:text-6xl font-black text-white mb-4 leading-tight"></h1>
+                    <div id="v-meta" class="flex flex-wrap items-center gap-4 text-sm text-gray-300 mb-6">
+                        <span id="v-rating" class="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full"><i class="fa-solid fa-star text-neon"></i> <span class="text-white font-bold"></span></span>
+                        <span id="v-runtime" class="flex items-center gap-2"><i class="fa-solid fa-clock text-neon"></i></span>
+                        <span id="v-release" class="flex items-center gap-2"><i class="fa-solid fa-calendar text-neon"></i></span>
+                        <span id="v-lang" class="border border-neon/40 px-2 py-0.5 rounded text-xs"></span>
+                    </div>
+                    <div id="v-genres" class="flex flex-wrap gap-2 mb-6"></div>
+                    <div class="flex flex-wrap gap-3">
+                        <button id="v-fav-btn" class="px-6 py-3 bg-white/10 backdrop-blur border border-white/20 text-white font-bold rounded-full hover:border-neon hover:text-neon transition-all flex items-center gap-2">
+                            <i class="fa-regular fa-heart"></i> Add to Favorites
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container mx-auto px-4 md:px-8 py-12 grid md:grid-cols-3 gap-8">
+                <!-- Details -->
+                <div class="md:col-span-2 space-y-8">
+                    <section class="glass-card p-6 rounded-xl">
+                        <h3 class="text-xl font-bold text-neon mb-4 font-display">Storyline</h3>
+                        <p id="v-overview" class="text-gray-300 leading-relaxed"></p>
+                    </section>
+                    <section class="glass-card p-6 rounded-xl">
+                        <h3 class="text-xl font-bold text-neon mb-4 font-display">Top Cast</h3>
+                        <div id="v-cast" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4"></div>
+                    </section>
+                </div>
+
+                <!-- Trailer -->
+                <div class="space-y-6">
+                    <section class="glass-card p-4 rounded-xl sticky top-24">
+                        <h3 class="text-xl font-bold text-neon mb-4 font-display">Official Trailer</h3>
+                        <div id="v-trailer-box" class="aspect-video rounded-lg overflow-hidden bg-black relative flex items-center justify-center">
+                            <span class="text-gray-500 text-sm">Fetching trailer...</span>
+                        </div>
+                        <p id="no-trailer" class="text-gray-500 text-center py-4 hidden">Trailer not available for this movie.</p>
+                        <div class="mt-4 grid grid-cols-2 gap-2 text-sm">
+                            <div class="bg-black/30 p-3 rounded-lg text-center">
+                                <div class="text-neon font-bold" id="v-vote-count">0</div>
+                                <div class="text-gray-400">Votes</div>
+                            </div>
+                            <div class="bg-black/30 p-3 rounded-lg text-center">
+                                <div class="text-neon font-bold" id="v-popularity">0</div>
+                                <div class="text-gray-400">Popularity</div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="view.js"></script>
+</body>
+</html>
